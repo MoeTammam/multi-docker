@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t moetammam/react-test -f ./client/Dockerfile.dev ./client
+
+#test scripts
+script:
+  - docker run -e CI=true moetammam/react-test npm -- --coverage
+
+after_success:
+  - docker build -t moetammam/multi-client ./client
+  - docker build -t moetammam/milti-nginx ./nginx
+  - docker build -t moetammam/multi-server ./server
+  - docker build -t moetammam/milti-worker ./worker
+
+# Log in to the docker CLI
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# Take those images and push them to docker hub
+- docker push moetammam/multi-client
+- docker push moetammam/milti-nginx
+- docker push moetammam/multi-server
+- docker push moetammam/milti-worker
